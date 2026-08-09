@@ -17,23 +17,39 @@ $$('nav a').forEach(link => link.addEventListener('click', () => {
   menu.setAttribute('aria-expanded', 'false');
 }));
 
+let scrollFrame = 0;
 const updateScroll = () => {
   const maximum = document.documentElement.scrollHeight - innerHeight;
-  progress.style.width = `${maximum ? scrollY / maximum * 100 : 0}%`;
+  const phase = maximum ? Math.min(scrollY / maximum, 1) : 0;
+  progress.style.transform = `scaleX(${phase})`;
   nav.classList.toggle('compact', scrollY > 45);
+  scrollFrame = 0;
 };
 
-addEventListener('scroll', updateScroll, { passive: true });
+const requestScrollUpdate = () => {
+  if (scrollFrame) return;
+  scrollFrame = requestAnimationFrame(updateScroll);
+};
+
+addEventListener('scroll', requestScrollUpdate, { passive: true });
 updateScroll();
 
+const sectionLinks = $$('.nav nav a, .section-dock a');
 const sectionObserver = new IntersectionObserver(entries => {
   entries.forEach(entry => {
     if (!entry.isIntersecting) return;
-    $$('nav a').forEach(link => link.classList.toggle('active', link.hash === `#${entry.target.id}`));
+    sectionLinks.forEach(link => link.classList.toggle('active', link.hash === `#${entry.target.id}`));
   });
 }, { rootMargin: '-35% 0px -55%', threshold: 0 });
 
 $$('main section[id]').forEach(section => sectionObserver.observe(section));
+
+// Animate the symbol field only around visible content.
+const textureObserver = new IntersectionObserver(entries => entries.forEach(entry => {
+  entry.target.classList.toggle('texture-active', entry.isIntersecting);
+}), { rootMargin: '30% 0px 30%', threshold: 0 });
+
+$$('main > section:not(.hero), footer').forEach(section => textureObserver.observe(section));
 
 // Reveal and click-clack heading motion.
 const revealObserver = new IntersectionObserver(entries => entries.forEach(entry => {
@@ -312,16 +328,106 @@ addEventListener('keydown', event => {
   }
 });
 
-// Small depth response on pointer-capable devices.
+// Click-clack transitions for internal navigation.
+const jumpFlash = $('.jump-flash');
+const jumpMap = {
+  project: ['01', 'ПРОЕКТ'],
+  factions: ['02', 'ФРАКЦИИ'],
+  gallery: ['03', 'ГОРОД'],
+  devblog: ['04', 'DEV LOG'],
+  rules: ['05', 'КОДЕКС'],
+  top: ['00', 'НАВЕРХ']
+};
+
+$$('a[href^="#"]').forEach(link => link.addEventListener('click', event => {
+  const id = link.hash.slice(1);
+  const target = id ? document.getElementById(id) : null;
+  if (!target) return;
+  event.preventDefault();
+  nav.classList.remove('open');
+  menu.setAttribute('aria-expanded', 'false');
+
+  const [number, label] = jumpMap[id] || ['--', link.dataset.jumpLabel || 'ПЕРЕХОД'];
+  $('span', jumpFlash).textContent = number;
+  $('strong', jumpFlash).textContent = label;
+  jumpFlash.classList.remove('play');
+  void jumpFlash.offsetWidth;
+  jumpFlash.classList.add('play');
+
+  setTimeout(() => {
+    target.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
+    const heading = $('.display, h2', target);
+    if (heading) {
+      heading.classList.remove('clack-hit');
+      requestAnimationFrame(() => heading.classList.add('clack-hit'));
+    }
+    history.pushState(null, '', `#${id}`);
+  }, 90);
+}));
+
+jumpFlash.addEventListener('animationend', () => jumpFlash.classList.remove('play'));
+
+// High-refresh pointer effects: every write is batched into requestAnimationFrame.
 if (matchMedia('(pointer:fine)').matches) {
-  $$('.tilt').forEach(card => {
-    card.addEventListener('mousemove', event => {
-      const rect = card.getBoundingClientRect();
-      const x = (event.clientX - rect.left) / rect.width - .5;
-      const y = (event.clientY - rect.top) / rect.height - .5;
-      card.style.transform = `perspective(900px) rotateY(${x * 3}deg) rotateX(${-y * 3}deg)`;
+  const aura = $('.cursor-aura');
+  let pointerFrame = 0;
+  let pointerX = -300;
+  let pointerY = -300;
+
+  addEventListener('pointermove', event => {
+    pointerX = event.clientX;
+    pointerY = event.clientY;
+    document.body.classList.add('pointer-ready');
+    document.body.classList.toggle('over-hero', Boolean(event.target.closest?.('.hero')));
+    if (pointerFrame) return;
+    pointerFrame = requestAnimationFrame(() => {
+      aura.style.transform = `translate3d(${pointerX}px,${pointerY}px,0)`;
+      pointerFrame = 0;
     });
-    card.addEventListener('mouseleave', () => { card.style.transform = ''; });
+  }, { passive: true });
+
+  addEventListener('blur', () => document.body.classList.remove('pointer-ready'));
+
+  $$('.tilt').forEach(card => {
+    let cardFrame = 0;
+    let tiltX = 0;
+    let tiltY = 0;
+    card.addEventListener('pointermove', event => {
+      const rect = card.getBoundingClientRect();
+      tiltX = (event.clientX - rect.left) / rect.width - .5;
+      tiltY = (event.clientY - rect.top) / rect.height - .5;
+      if (cardFrame) return;
+      cardFrame = requestAnimationFrame(() => {
+        card.style.transform = `perspective(900px) rotateY(${tiltX * 3}deg) rotateX(${-tiltY * 3}deg)`;
+        cardFrame = 0;
+      });
+    }, { passive: true });
+    card.addEventListener('pointerleave', () => {
+      if (cardFrame) cancelAnimationFrame(cardFrame);
+      cardFrame = 0;
+      card.style.transform = '';
+    });
+  });
+
+  $$('.magnetic').forEach(button => {
+    let buttonFrame = 0;
+    let moveX = 0;
+    let moveY = 0;
+    button.addEventListener('pointermove', event => {
+      const rect = button.getBoundingClientRect();
+      moveX = (event.clientX - rect.left - rect.width / 2) * .08;
+      moveY = (event.clientY - rect.top - rect.height / 2) * .12;
+      if (buttonFrame) return;
+      buttonFrame = requestAnimationFrame(() => {
+        button.style.transform = `translate3d(${moveX}px,${moveY}px,0)`;
+        buttonFrame = 0;
+      });
+    }, { passive: true });
+    button.addEventListener('pointerleave', () => {
+      if (buttonFrame) cancelAnimationFrame(buttonFrame);
+      buttonFrame = 0;
+      button.style.transform = '';
+    });
   });
 }
 
