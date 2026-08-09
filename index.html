@@ -17,6 +17,7 @@
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="mobile-fix.css">
   <link rel="stylesheet" href="compact.css">
+  <link rel="stylesheet" href="functional.css">
 </head>
 <body>
   <div class="progress" aria-hidden="true"><span></span></div>
@@ -39,14 +40,14 @@
 
   <main>
     <section class="hero" aria-labelledby="hero-title">
-      <div class="hero-art" aria-hidden="true"></div>
+      <div class="hero-art" id="heroArt" aria-hidden="true"></div>
       <div class="hero-shape shape-one" aria-hidden="true"></div>
       <div class="hero-shape shape-two" aria-hidden="true"></div>
       <div class="hero-inner">
         <div class="hero-kicker reveal"><span class="status-dot"></span> ОТКРЫТАЯ РАЗРАБОТКА · МОСКВА</div>
-        <h1 id="hero-title" class="reveal"><span>Твоя история.</span><em>Твоя Родина.</em></h1>
+        <h1 id="hero-title" class="reveal clack-title" aria-live="polite"><span id="heroLineOne">Твоя история.</span><em id="heroLineTwo">Твоя Родина.</em></h1>
         <div class="hero-bottom reveal">
-          <p>Серьёзный ролевой проект, где у каждого решения есть последствия, а у каждого игрока — собственный путь.</p>
+          <p id="heroDescription">Серьёзный ролевой проект, где у каждого решения есть последствия, а у каждого игрока — собственный путь.</p>
           <div class="hero-actions">
             <a class="button button-primary magnetic" href="https://discord.com/channels/1071899989690826844" target="_blank" rel="noopener"><span>Начать историю</span><b>↗</b></a>
             <a class="button button-ghost" href="#project"><span>Исследовать город</span><b>↓</b></a>
@@ -54,6 +55,15 @@
         </div>
       </div>
       <div class="hero-index" aria-hidden="true"><b>77</b><span>регион<br>новых историй</span></div>
+      <div class="hero-switcher" aria-label="Переключение главных экранов">
+        <button class="hero-arrow" id="heroPrev" aria-label="Предыдущий экран">←</button>
+        <div class="hero-pages" role="tablist">
+          <button class="active" role="tab" aria-selected="true" data-hero="0"><b>01</b><span></span></button>
+          <button role="tab" aria-selected="false" data-hero="1"><b>02</b><span></span></button>
+          <button role="tab" aria-selected="false" data-hero="2"><b>03</b><span></span></button>
+        </div>
+        <button class="hero-arrow" id="heroNext" aria-label="Следующий экран">→</button>
+      </div>
       <div class="hero-rail" aria-hidden="true"><span>RODINA ROLEPLAY</span><i></i><span>EST. 2026</span></div>
     </section>
 
@@ -104,12 +114,18 @@
 
     <section class="gallery section" id="gallery">
       <div class="gallery-head reveal"><div><span class="section-num">03</span><p class="overline">МОСКВА / В РАЗРАБОТКЕ</p></div><h2 class="display">Узнаваемая.<br><em>Но совершенно новая.</em></h2><p>От делового центра до тихих дворов — каждый район получает собственный характер и игровые сценарии.</p></div>
-      <div class="gallery-grid">
-        <button class="gallery-item gallery-a reveal" data-full="assets/gallery/skyline.jpg"><img src="assets/gallery/skyline.jpg" alt="Панорама игровой Москвы"><span><b>01</b> Панорама центра</span></button>
-        <button class="gallery-item gallery-b reveal" data-full="assets/gallery/security.jpg"><img src="assets/gallery/security.jpg" alt="Силовые структуры"><span><b>02</b> Силовые структуры</span></button>
-        <button class="gallery-item gallery-c reveal" data-full="assets/gallery/cafe.jpg"><img src="assets/gallery/cafe.jpg" alt="Городское кафе"><span><b>03</b> Повседневная жизнь</span></button>
-        <button class="gallery-item gallery-d reveal" data-full="assets/gallery/city.jpg"><img src="assets/gallery/city.jpg" alt="Деловой квартал"><span><b>04</b> Деловой квартал</span></button>
-        <button class="gallery-item gallery-e reveal" data-full="assets/gallery/office.jpg"><img src="assets/gallery/office.jpg" alt="Интерьер офиса"><span><b>05</b> Интерьеры</span></button>
+      <div class="gallery-slider reveal" aria-roledescription="карусель">
+        <div class="gallery-viewport">
+          <div class="gallery-slides" id="gallerySlides"></div>
+          <div class="gallery-caption"><span id="galleryNumber">01 / 08</span><div><p id="galleryCategory">ГОРОД</p><h3 id="galleryTitle">Панорама центра</h3></div><button id="galleryExpand" aria-label="Открыть изображение">↗</button></div>
+        </div>
+        <div class="gallery-console">
+          <button id="galleryPrev" aria-label="Предыдущий кадр">←</button>
+          <div class="gallery-progress"><span id="galleryProgress"></span></div>
+          <p><b id="galleryCurrent">01</b> / 08</p>
+          <button id="galleryNext" aria-label="Следующий кадр">→</button>
+        </div>
+        <div class="gallery-thumbs" id="galleryThumbs" aria-label="Миниатюры галереи"></div>
       </div>
     </section>
 
@@ -117,13 +133,13 @@
       <div class="section-top reveal"><div><span class="section-num">04</span><p class="overline">DEV LOG / 2026</p></div><h2 class="display">Показываем процесс.<br><em>Не обещания.</em></h2></div>
       <div class="dev-layout">
         <article class="featured-log reveal">
-          <div class="log-image"><img src="assets/gallery/map.jpg" alt="Черновая карта игрового мира"><span>WORK IN PROGRESS</span></div>
-          <div class="log-copy"><time>24 ИЮЛЯ 2026</time><p class="log-number">001</p><h3>Первый взгляд<br>на карту</h3><p>Чистый лист без обозначений — основа будущего города. К открытию здесь появятся дополнительные локации и связные игровые маршруты.</p><a href="#gallery">Исследовать визуалы <b>↗</b></a></div>
+          <div class="log-image"><img id="devImage" src="assets/gallery/map.jpg" alt="Черновая карта игрового мира"><span id="devBadge">WORK IN PROGRESS</span></div>
+          <div class="log-copy"><time id="devDate">24 ИЮЛЯ 2026</time><p class="log-number" id="devNumber">001</p><h3 id="devTitle">Первый взгляд<br>на карту</h3><p id="devText">Чистый лист без обозначений — основа будущего города. К открытию здесь появятся дополнительные локации и связные игровые маршруты.</p><a href="#gallery">Исследовать визуалы <b>↗</b></a><div class="dev-controls"><button id="devPrev" aria-label="Предыдущая запись">←</button><span><b id="devCurrent">01</b> / 04</span><button id="devNext" aria-label="Следующая запись">→</button></div></div>
         </article>
         <div class="log-list">
-          <article class="log-row reveal"><time>25.07</time><div><span>ФРАКЦИИ</span><h3>Представлена структура ФСБ</h3></div><b>↗</b></article>
-          <article class="log-row reveal"><time>27.07</time><div><span>ФРАКЦИИ</span><h3>Первые кадры МВД</h3></div><b>↗</b></article>
-          <article class="log-row reveal"><time>27.07</time><div><span>СООБЩЕСТВО</span><h3>Опубликован свод правил</h3></div><b>↗</b></article>
+          <button class="log-row reveal" data-dev="1"><time>25.07</time><div><span>ФРАКЦИИ</span><h3>Представлена структура ФСБ</h3></div><b>↗</b></button>
+          <button class="log-row reveal" data-dev="2"><time>27.07</time><div><span>ФРАКЦИИ</span><h3>Первые кадры МВД</h3></div><b>↗</b></button>
+          <button class="log-row reveal" data-dev="3"><time>27.07</time><div><span>СООБЩЕСТВО</span><h3>Опубликован свод правил</h3></div><b>↗</b></button>
         </div>
       </div>
     </section>
