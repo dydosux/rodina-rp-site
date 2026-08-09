@@ -1,0 +1,186 @@
+:root {
+  --display: "Onest", sans-serif;
+}
+
+.nav {
+  height: 78px;
+}
+
+.nav.compact {
+  height: 64px;
+}
+
+.hero-inner {
+  padding-top: clamp(125px, 15vh, 165px);
+  padding-bottom: 105px;
+}
+
+.hero h1 {
+  max-width: 1040px;
+  font-size: clamp(46px, 6.2vw, 96px);
+  line-height: .96;
+  letter-spacing: -.052em;
+}
+
+.hero h1 em,
+.display em,
+.final-content h2 em {
+  color: rgba(247, 245, 241, .48);
+  -webkit-text-stroke: 0;
+}
+
+.hero h1 em {
+  margin-top: 5px;
+}
+
+.hero-bottom {
+  margin-top: 32px;
+}
+
+.hero-bottom p {
+  font-size: 14px;
+}
+
+.button {
+  min-width: 195px;
+  padding: 15px 18px;
+}
+
+.hero-index b {
+  font-family: var(--display);
+  font-size: 42px;
+}
+
+.section,
+.section-dark {
+  padding-top: 110px;
+  padding-bottom: 110px;
+}
+
+.display {
+  font-size: clamp(36px, 4.35vw, 64px);
+  line-height: 1.08;
+  letter-spacing: -.048em;
+}
+
+.project-grid {
+  margin-top: 64px;
+}
+
+.project-shot {
+  height: 410px;
+}
+
+.numbers {
+  padding-bottom: 90px;
+}
+
+.number strong {
+  font-size: clamp(36px, 3.5vw, 56px);
+}
+
+.section-top,
+.gallery-head {
+  margin-bottom: 58px;
+}
+
+.faction-stage,
+.faction-visual {
+  min-height: 550px;
+}
+
+.faction-tab {
+  padding: 25px;
+}
+
+.faction-tab span {
+  margin-bottom: 25px;
+}
+
+.faction-tab b {
+  font-size: 24px;
+}
+
+.faction-overlay h3 {
+  font-size: clamp(30px, 3vw, 48px);
+  letter-spacing: -.035em;
+}
+
+.featured-log .log-image {
+  min-height: 490px;
+}
+
+.log-copy h3 {
+  font-size: 29px;
+}
+
+.principles-intro .display {
+  margin-bottom: 58px;
+}
+
+.final-cta {
+  min-height: 650px;
+}
+
+.final-content h2 {
+  font-size: clamp(46px, 6vw, 88px);
+  line-height: .94;
+  letter-spacing: -.055em;
+}
+
+@media (max-width: 820px) {
+  .nav {
+    height: 66px;
+  }
+
+  .nav.open nav {
+    top: 64px;
+  }
+
+  .hero-inner {
+    padding-top: 110px;
+  }
+
+  .hero h1 {
+    font-size: clamp(42px, 11vw, 68px);
+  }
+
+  .section,
+  .section-dark {
+    padding-top: 82px;
+    padding-bottom: 82px;
+  }
+
+  .faction-stage,
+  .faction-visual {
+    min-height: 500px;
+  }
+}
+
+@media (max-width: 560px) {
+  .hero h1 {
+    font-size: 41px;
+    line-height: 1;
+  }
+
+  .display {
+    font-size: 32px;
+    line-height: 1.1;
+  }
+
+  .project-shot {
+    height: 270px;
+  }
+
+  .gallery-item {
+    height: 370px !important;
+  }
+
+  .final-cta {
+    min-height: 570px;
+  }
+
+  .final-content h2 {
+    font-size: 42px;
+  }
+}
