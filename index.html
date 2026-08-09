@@ -3,90 +3,152 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="theme-color" content="#090d13">
-  <meta name="description" content="RODINA RP — серьёзный ролевой проект в мире Unturned.">
-  <title>RODINA RP | UNTURNED</title>
+  <meta name="theme-color" content="#07090d">
+  <meta name="description" content="RODINA RP — серьёзный ролевой проект в авторской Москве мира Unturned.">
+  <meta property="og:title" content="RODINA RP | UNTURNED">
+  <meta property="og:description" content="Не просто сервер. Город, который живёт.">
+  <meta property="og:image" content="assets/hero.png">
+  <title>RODINA RP — Твоя история. Твоя Родина.</title>
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Unbounded:wght@500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Unbounded:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <script>document.documentElement.classList.add('js')</script>
   <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="mobile-fix.css">
 </head>
 <body>
+  <div class="progress" aria-hidden="true"><span></span></div>
+  <div class="grain" aria-hidden="true"></div>
+
   <header class="nav" id="top">
-    <a class="brand" href="#top" aria-label="RODINA RP — на главную"><span class="brand-mark">R</span><span>RODINA <b>RP</b></span></a>
+    <a class="brand" href="#top" aria-label="RODINA RP — на главную">
+      <span class="brand-mark">R</span>
+      <span class="brand-copy">RODINA <b>RP</b><small>UNTURNED ROLEPLAY</small></span>
+    </a>
     <nav aria-label="Основная навигация">
-      <a href="#world">О проекте</a><a href="#factions">Фракции</a><a href="#devblog">Dev Blog</a><a href="#rules">Правила</a>
+      <a href="#project"><span>01</span> Проект</a>
+      <a href="#factions"><span>02</span> Фракции</a>
+      <a href="#gallery"><span>03</span> Город</a>
+      <a href="#devblog"><span>04</span> Разработка</a>
     </nav>
-    <a class="nav-cta" href="https://discord.com/channels/1071899989690826844" target="_blank" rel="noopener">Discord <span>↗</span></a>
-    <button class="menu" aria-label="Открыть меню" aria-expanded="false">☰</button>
+    <a class="nav-cta" href="https://discord.com/channels/1071899989690826844" target="_blank" rel="noopener"><i></i> Играть в Discord <b>↗</b></a>
+    <button class="menu" aria-label="Открыть меню" aria-expanded="false"><span></span><span></span></button>
   </header>
 
   <main>
-    <section class="hero">
-      <div class="hero-glow"></div>
-      <div class="hero-content reveal">
-        <div class="eyebrow"><span></span> РОЛЕВАЯ МОСКВА В UNTURNED</div>
-        <h1>Твоя история.<br><em>Твоя Родина.</em></h1>
-        <p>Живой город, серьёзные роли и выбор, который действительно меняет твою историю. Вступай в службу, строй карьеру или найди свой путь.</p>
-        <div class="hero-actions">
-          <a class="primary" href="https://discord.com/channels/1071899989690826844" target="_blank" rel="noopener">Присоединиться <span>→</span></a>
-          <a class="text-link" href="#devblog">Смотреть разработку <span>↓</span></a>
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="hero-art" aria-hidden="true"></div>
+      <div class="hero-shape shape-one" aria-hidden="true"></div>
+      <div class="hero-shape shape-two" aria-hidden="true"></div>
+      <div class="hero-inner">
+        <div class="hero-kicker reveal"><span class="status-dot"></span> ОТКРЫТАЯ РАЗРАБОТКА · МОСКВА</div>
+        <h1 id="hero-title" class="reveal"><span>Твоя история.</span><em>Твоя Родина.</em></h1>
+        <div class="hero-bottom reveal">
+          <p>Серьёзный ролевой проект, где у каждого решения есть последствия, а у каждого игрока — собственный путь.</p>
+          <div class="hero-actions">
+            <a class="button button-primary magnetic" href="https://discord.com/channels/1071899989690826844" target="_blank" rel="noopener"><span>Начать историю</span><b>↗</b></a>
+            <a class="button button-ghost" href="#project"><span>Исследовать город</span><b>↓</b></a>
+          </div>
         </div>
       </div>
-      <div class="hero-meta reveal">
-        <div><strong>Москва</strong><span>Авторская карта</span></div>
-        <div><strong>Serious RP</strong><span>Осмысленные роли</span></div>
-        <div><strong>Live Dev</strong><span>Открытая разработка</span></div>
-      </div>
-      <div class="scroll">SCROLL <i></i></div>
+      <div class="hero-index" aria-hidden="true"><b>77</b><span>регион<br>новых историй</span></div>
+      <div class="hero-rail" aria-hidden="true"><span>RODINA ROLEPLAY</span><i></i><span>EST. 2026</span></div>
     </section>
 
-    <section class="manifesto section" id="world">
-      <div class="section-label">01 / О ПРОЕКТЕ</div>
-      <div class="manifesto-grid">
-        <h2 class="reveal">Не просто сервер.<br><span>Город, который живёт.</span></h2>
-        <div class="copy reveal"><p>RODINA RP переносит знакомую атмосферу современной Москвы в стилизованный мир Unturned. Здесь каждый район — сцена для новой истории, а каждая роль имеет вес.</p><p>Проект строится вокруг порядка, взаимодействия и свободы выбора: от работы в государственных структурах до собственной истории обычного гражданина.</p></div>
+    <div class="marquee" aria-label="Ключевые особенности проекта">
+      <div class="marquee-track">
+        <span>АВТОРСКАЯ МОСКВА</span><i>✦</i><span>SERIOUS ROLEPLAY</span><i>✦</i><span>ЖИВЫЕ ФРАКЦИИ</span><i>✦</i><span>ОТКРЫТАЯ РАЗРАБОТКА</span><i>✦</i>
+        <span>АВТОРСКАЯ МОСКВА</span><i>✦</i><span>SERIOUS ROLEPLAY</span><i>✦</i><span>ЖИВЫЕ ФРАКЦИИ</span><i>✦</i><span>ОТКРЫТАЯ РАЗРАБОТКА</span><i>✦</i>
       </div>
-      <div class="stats">
-        <div class="stat reveal"><b>04</b><span>ключевых направления игры</span></div>
-        <div class="stat reveal"><b>24/7</b><span>городская ролевая среда</span></div>
-        <div class="stat reveal"><b>∞</b><span>историй игроков</span></div>
-      </div>
-    </section>
+    </div>
 
-    <section class="factions section" id="factions">
-      <div class="section-head"><div><div class="section-label">02 / ФРАКЦИИ</div><h2>Выбери, кем<br>станет твой герой</h2></div><p>Организации со своей задачей, характером службы и внутренней культурой.</p></div>
-      <div class="cards">
-        <article class="faction-card active reveal"><span class="num">01</span><div class="icon">✦</div><h3>ФСБ</h3><p>Государственная безопасность, защита порядка и суверенитета. Работа для тех, кто действует точно и незаметно.</p><a href="#devblog">Подробнее <span>↗</span></a></article>
-        <article class="faction-card reveal"><span class="num">02</span><div class="icon">◈</div><h3>МВД</h3><p>Патрулирование улиц, пресечение преступлений и ежедневная служба городу.</p><a href="#devblog">Подробнее <span>↗</span></a></article>
-        <article class="faction-card reveal"><span class="num">03</span><div class="icon">⌁</div><h3>Гражданские</h3><p>Работа, бизнес, знакомства и собственный маршрут в большом городе без заранее заданного сценария.</p><a href="#world">Подробнее <span>↗</span></a></article>
+    <section class="project section" id="project">
+      <div class="section-aside reveal"><span>01</span><p>О ПРОЕКТЕ</p></div>
+      <div class="project-main">
+        <p class="overline reveal">ГОРОД КАК ГЛАВНЫЙ ГЕРОЙ</p>
+        <h2 class="display reveal">Мы создаём не карту.<br><em>Мы создаём среду,</em><br>в которой хочется жить.</h2>
+        <div class="project-grid">
+          <div class="project-copy reveal">
+            <p class="lead">RODINA RP переносит знакомый ритм современной Москвы в стилизованный мир Unturned — со службой, карьерой, конфликтами и выбором.</p>
+            <p>Здесь нет заранее написанного сценария. История города складывается из решений игроков: от первой смены в патруле до сложных государственных операций.</p>
+          </div>
+          <figure class="project-shot reveal tilt"><img src="assets/gallery/district.jpg" alt="Современный район игровой Москвы"><figcaption><span>01 / 08</span> Новые городские кварталы</figcaption></figure>
+        </div>
       </div>
     </section>
 
-    <section class="dev section" id="devblog">
-      <div class="section-head"><div><div class="section-label">03 / DEV BLOG</div><h2>Город создаётся<br>прямо сейчас</h2></div><p>Карта, фракции и первые игровые тесты — ключевые этапы открытой разработки.</p></div>
-      <div class="timeline">
-        <article class="post post-wide reveal"><div class="post-media media-map"></div><div class="post-info"><time>24.07.2026</time><h3>Первый взгляд на карту</h3><p>Черновая мини-карта Москвы без обозначений. К открытию планируются новые локации и дальнейшая детализация мира.</p><span>КАРТА / WIP</span></div></article>
-        <article class="post reveal"><div class="post-media media-fsb"></div><div class="post-info"><time>25.07.2026</time><h3>Фракция ФСБ</h3><p>Элитная государственная служба и её первые игровые пространства.</p><span>ФРАКЦИИ</span></div></article>
-        <article class="post reveal"><div class="post-media media-mvd"></div><div class="post-info"><time>27.07.2026</time><h3>Фракция МВД</h3><p>Патрульная служба, городская инфраструктура и транспорт.</p><span>ФРАКЦИИ</span></div></article>
+    <section class="numbers" aria-label="Проект в цифрах">
+      <div class="number reveal"><span>01</span><strong data-count="4">0</strong><p>игровых направления</p></div>
+      <div class="number reveal"><span>02</span><strong>24/7</strong><p>живая ролевая среда</p></div>
+      <div class="number reveal"><span>03</span><strong data-count="100">0</strong><p>процентов авторского мира</p></div>
+      <div class="number reveal"><span>04</span><strong>∞</strong><p>возможных историй</p></div>
+    </section>
+
+    <section class="factions section-dark" id="factions">
+      <div class="section-top reveal"><div><span class="section-num">02</span><p class="overline">ТВОЯ РОЛЬ В ГОРОДЕ</p></div><h2 class="display">Выбери сторону.<br><em>Оставь след.</em></h2></div>
+      <div class="faction-stage reveal">
+        <div class="faction-tabs" role="tablist" aria-label="Фракции">
+          <button class="faction-tab active" role="tab" aria-selected="true" data-faction="mvd"><span>01</span><b>МВД</b><small>Порядок начинается с тебя</small></button>
+          <button class="faction-tab" role="tab" aria-selected="false" data-faction="fsb"><span>02</span><b>ФСБ</b><small>Точность. Служба. Тишина.</small></button>
+          <button class="faction-tab" role="tab" aria-selected="false" data-faction="civil"><span>03</span><b>Гражданские</b><small>Собственный маршрут</small></button>
+        </div>
+        <div class="faction-visual">
+          <img id="factionImage" src="assets/gallery/patrol.jpg" alt="Патруль МВД">
+          <div class="faction-overlay"><span id="factionTag">ГОСУДАРСТВЕННАЯ СЛУЖБА</span><h3 id="factionTitle">Защищай город,<br>который стал домом.</h3><p id="factionText">Патрулируй улицы, реагируй на вызовы и поддерживай порядок там, где каждое решение видно всему городу.</p></div>
+          <div class="frame-corner tl"></div><div class="frame-corner br"></div>
+        </div>
       </div>
     </section>
 
-    <section class="rules section" id="rules">
-      <div class="rules-title"><div class="section-label">04 / ПРИНЦИПЫ</div><h2>Сильная атмосфера<br>начинается с уважения</h2></div>
-      <div class="rule-list">
-        <div class="rule reveal"><b>01</b><div><h3>Честная игра</h3><p>Без обхода наказаний, вредоносных программ и использования недоработок правил.</p></div></div>
-        <div class="rule reveal"><b>02</b><div><h3>Уважение к людям</h3><p>Никакой дискриминации, травли, разглашения личных данных или оскорбления близких.</p></div></div>
-        <div class="rule reveal"><b>03</b><div><h3>Порядок в общении</h3><p>Без рекламы, спама, политических конфликтов и выдачи себя за представителей администрации.</p></div></div>
+    <section class="gallery section" id="gallery">
+      <div class="gallery-head reveal"><div><span class="section-num">03</span><p class="overline">МОСКВА / В РАЗРАБОТКЕ</p></div><h2 class="display">Узнаваемая.<br><em>Но совершенно новая.</em></h2><p>От делового центра до тихих дворов — каждый район получает собственный характер и игровые сценарии.</p></div>
+      <div class="gallery-grid">
+        <button class="gallery-item gallery-a reveal" data-full="assets/gallery/skyline.jpg"><img src="assets/gallery/skyline.jpg" alt="Панорама игровой Москвы"><span><b>01</b> Панорама центра</span></button>
+        <button class="gallery-item gallery-b reveal" data-full="assets/gallery/security.jpg"><img src="assets/gallery/security.jpg" alt="Силовые структуры"><span><b>02</b> Силовые структуры</span></button>
+        <button class="gallery-item gallery-c reveal" data-full="assets/gallery/cafe.jpg"><img src="assets/gallery/cafe.jpg" alt="Городское кафе"><span><b>03</b> Повседневная жизнь</span></button>
+        <button class="gallery-item gallery-d reveal" data-full="assets/gallery/city.jpg"><img src="assets/gallery/city.jpg" alt="Деловой квартал"><span><b>04</b> Деловой квартал</span></button>
+        <button class="gallery-item gallery-e reveal" data-full="assets/gallery/office.jpg"><img src="assets/gallery/office.jpg" alt="Интерьер офиса"><span><b>05</b> Интерьеры</span></button>
       </div>
     </section>
 
-    <section class="join">
-      <div class="join-noise"></div><div class="join-inner reveal"><span>ГОТОВ НАЧАТЬ?</span><h2>Москва ждёт<br>твою историю.</h2><a class="primary light" href="https://discord.com/channels/1071899989690826844" target="_blank" rel="noopener">Открыть Discord <span>↗</span></a></div>
+    <section class="dev section-dark" id="devblog">
+      <div class="section-top reveal"><div><span class="section-num">04</span><p class="overline">DEV LOG / 2026</p></div><h2 class="display">Показываем процесс.<br><em>Не обещания.</em></h2></div>
+      <div class="dev-layout">
+        <article class="featured-log reveal">
+          <div class="log-image"><img src="assets/gallery/map.jpg" alt="Черновая карта игрового мира"><span>WORK IN PROGRESS</span></div>
+          <div class="log-copy"><time>24 ИЮЛЯ 2026</time><p class="log-number">001</p><h3>Первый взгляд<br>на карту</h3><p>Чистый лист без обозначений — основа будущего города. К открытию здесь появятся дополнительные локации и связные игровые маршруты.</p><a href="#gallery">Исследовать визуалы <b>↗</b></a></div>
+        </article>
+        <div class="log-list">
+          <article class="log-row reveal"><time>25.07</time><div><span>ФРАКЦИИ</span><h3>Представлена структура ФСБ</h3></div><b>↗</b></article>
+          <article class="log-row reveal"><time>27.07</time><div><span>ФРАКЦИИ</span><h3>Первые кадры МВД</h3></div><b>↗</b></article>
+          <article class="log-row reveal"><time>27.07</time><div><span>СООБЩЕСТВО</span><h3>Опубликован свод правил</h3></div><b>↗</b></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="principles section" id="rules">
+      <div class="principles-intro reveal"><span class="section-num">05</span><p class="overline">КОДЕКС СООБЩЕСТВА</p><h2 class="display">Атмосфера начинается<br><em>с каждого из нас.</em></h2></div>
+      <div class="principle-list">
+        <article class="principle reveal"><span>01</span><h3>Честная игра</h3><p>Никаких обходов наказаний, вредоносных программ и эксплуатации ошибок.</p><i>FAIR PLAY</i></article>
+        <article class="principle reveal"><span>02</span><h3>Уважение</h3><p>Без травли, дискриминации, разглашения личных данных и оскорблений близких.</p><i>RESPECT</i></article>
+        <article class="principle reveal"><span>03</span><h3>Порядок</h3><p>Без спама, рекламы, политических конфликтов и попыток выдать себя за администрацию.</p><i>ORDER</i></article>
+      </div>
+    </section>
+
+    <section class="final-cta">
+      <div class="final-photo" aria-hidden="true"></div>
+      <div class="final-content reveal"><p class="overline">ТВОЯ СМЕНА НАЧИНАЕТСЯ СЕЙЧАС</p><h2>Город ждёт<br><em>твою историю.</em></h2><a class="button button-light magnetic" href="https://discord.com/channels/1071899989690826844" target="_blank" rel="noopener"><span>Присоединиться к серверу</span><b>↗</b></a></div>
+      <div class="final-word" aria-hidden="true">RODINA</div>
     </section>
   </main>
 
-  <footer><a class="brand" href="#top"><span class="brand-mark">R</span><span>RODINA <b>RP</b></span></a><p>Независимый ролевой проект в мире Unturned.</p><div><a href="#world">Проект</a><a href="#rules">Правила</a><a href="https://discord.com/channels/1071899989690826844">Discord</a></div><small>© 2026 RODINA RP</small></footer>
+  <footer>
+    <div class="footer-top"><a class="brand" href="#top"><span class="brand-mark">R</span><span class="brand-copy">RODINA <b>RP</b><small>UNTURNED ROLEPLAY</small></span></a><p>Независимый ролевой проект<br>в мире Unturned.</p><div class="footer-links"><a href="#project">Проект</a><a href="#factions">Фракции</a><a href="#gallery">Галерея</a><a href="#rules">Правила</a></div></div>
+    <div class="footer-bottom"><small>© 2026 RODINA RP. Все права защищены.</small><a href="#top">Наверх ↑</a></div>
+  </footer>
+
+  <dialog class="lightbox"><button aria-label="Закрыть">×</button><img src="" alt="Просмотр игрового кадра"><p></p></dialog>
   <script src="script.js"></script>
 </body>
 </html>

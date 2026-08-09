@@ -1,3 +1,7 @@
 assets/collage-source/
 assets/collage-contact-sheet.jpg
 build-collage.ps1
+.edge-profile/
+.edge-mobile/
+.edge-*/
+preview-*.png
