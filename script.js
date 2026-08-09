@@ -1,63 +1,113 @@
 const $ = (selector, root = document) => root.querySelector(selector);
 const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
 const pad = value => String(value).padStart(2, '0');
+const reduceMotion = () => document.body.classList.contains('motion-off') || matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-// Navigation, scroll progress and active section.
-const nav = $('.nav');
-const menu = $('.menu');
-const progress = $('.progress span');
+// Header, navigation and high-refresh scroll state.
+const header = $('.site-header');
+const menuToggle = $('#menuToggle');
+const scrollMeter = $('#scrollMeter');
+const compass = $('.page-compass');
+const compassNumber = $('#compassNumber');
+const compassTitle = $('#compassTitle');
+const jumpCard = $('#jumpCard');
+let scrollFrame = 0;
 
-menu.addEventListener('click', () => {
-  const open = nav.classList.toggle('open');
-  menu.setAttribute('aria-expanded', String(open));
+const closeMenu = () => {
+  header.classList.remove('menu-open');
+  document.body.classList.remove('menu-open');
+  menuToggle.setAttribute('aria-expanded', 'false');
+  menuToggle.setAttribute('aria-label', 'Открыть меню');
+};
+
+menuToggle.addEventListener('click', () => {
+  const open = !header.classList.contains('menu-open');
+  header.classList.toggle('menu-open', open);
+  document.body.classList.toggle('menu-open', open);
+  menuToggle.setAttribute('aria-expanded', String(open));
+  menuToggle.setAttribute('aria-label', open ? 'Закрыть меню' : 'Открыть меню');
 });
 
-$$('nav a').forEach(link => link.addEventListener('click', () => {
-  nav.classList.remove('open');
-  menu.setAttribute('aria-expanded', 'false');
-}));
-
-let scrollFrame = 0;
 const updateScroll = () => {
   const maximum = document.documentElement.scrollHeight - innerHeight;
-  const phase = maximum ? Math.min(scrollY / maximum, 1) : 0;
-  progress.style.transform = `scaleX(${phase})`;
-  nav.classList.toggle('compact', scrollY > 45);
+  scrollMeter.style.transform = `scaleX(${maximum > 0 ? Math.min(scrollY / maximum, 1) : 0})`;
+  header.classList.toggle('compact', scrollY > 42);
+  compass.classList.toggle('visible', scrollY > Math.min(innerHeight * .7, 650));
   scrollFrame = 0;
 };
 
-const requestScrollUpdate = () => {
-  if (scrollFrame) return;
-  scrollFrame = requestAnimationFrame(updateScroll);
-};
-
-addEventListener('scroll', requestScrollUpdate, { passive: true });
+addEventListener('scroll', () => {
+  if (!scrollFrame) scrollFrame = requestAnimationFrame(updateScroll);
+}, { passive: true });
+addEventListener('resize', updateScroll, { passive: true });
 updateScroll();
 
-const sectionLinks = $$('.nav nav a, .section-dock a');
+const navLinks = $$('.main-nav a');
 const sectionObserver = new IntersectionObserver(entries => {
   entries.forEach(entry => {
     if (!entry.isIntersecting) return;
-    sectionLinks.forEach(link => link.classList.toggle('active', link.hash === `#${entry.target.id}`));
+    const hash = `#${entry.target.id}`;
+    navLinks.forEach(link => {
+      const active = link.hash === hash;
+      link.classList.toggle('active', active);
+      if (active) link.setAttribute('aria-current', 'location');
+      else link.removeAttribute('aria-current');
+    });
+    compassNumber.textContent = entry.target.dataset.section;
+    compassTitle.textContent = entry.target.dataset.title;
   });
-}, { rootMargin: '-35% 0px -55%', threshold: 0 });
+}, { rootMargin: '-34% 0px -56%', threshold: 0 });
 
-$$('main section[id]').forEach(section => sectionObserver.observe(section));
+$$('[data-section]').forEach(section => sectionObserver.observe(section));
 
-// Animate the symbol field only around visible content.
-const textureObserver = new IntersectionObserver(entries => entries.forEach(entry => {
-  entry.target.classList.toggle('texture-active', entry.isIntersecting);
+const surfaceObserver = new IntersectionObserver(entries => entries.forEach(entry => {
+  entry.target.classList.toggle('in-view', entry.isIntersecting);
 }), { rootMargin: '30% 0px 30%', threshold: 0 });
 
-$$('main > section:not(.hero), footer').forEach(section => textureObserver.observe(section));
+$$('.surface').forEach(section => surfaceObserver.observe(section));
 
-// Reveal and click-clack heading motion.
+const jumpTo = (target, link) => {
+  const sectionNumber = target.dataset.section || (target.id === 'home' ? '00' : '--');
+  const sectionTitle = target.dataset.title || (target.id === 'home' ? 'ГЛАВНАЯ' : link.textContent.trim());
+  const delay = reduceMotion() ? 0 : 90;
+
+  if (!reduceMotion()) {
+    $('b', jumpCard).textContent = sectionNumber;
+    $('strong', jumpCard).textContent = sectionTitle;
+    jumpCard.classList.remove('play');
+    void jumpCard.offsetWidth;
+    jumpCard.classList.add('play');
+  }
+
+  setTimeout(() => {
+    target.scrollIntoView({ behavior: reduceMotion() ? 'auto' : 'smooth', block: 'start' });
+    const heading = $('h1, h2', target);
+    if (heading && !reduceMotion()) {
+      heading.classList.remove('heading-clack');
+      requestAnimationFrame(() => heading.classList.add('heading-clack'));
+    }
+    try { history.pushState(null, '', `#${target.id}`); } catch { location.hash = target.id; }
+  }, delay);
+};
+
+$$('a[href^="#"]').forEach(link => link.addEventListener('click', event => {
+  const target = document.getElementById(link.hash.slice(1));
+  if (!target) return;
+  event.preventDefault();
+  closeMenu();
+  jumpTo(target, link);
+}));
+
+jumpCard.addEventListener('animationend', event => {
+  if (event.target === jumpCard) jumpCard.classList.remove('play');
+});
+
+// Reveal content and animate counters only when needed.
 const revealObserver = new IntersectionObserver(entries => entries.forEach(entry => {
   if (!entry.isIntersecting) return;
   entry.target.classList.add('visible');
-  if (entry.target.classList.contains('display')) entry.target.classList.add('clack-hit');
   revealObserver.unobserve(entry.target);
-}), { threshold: .12, rootMargin: '0px 0px -35px' });
+}), { threshold: .1, rootMargin: '0px 0px -28px' });
 
 $$('.reveal').forEach(element => revealObserver.observe(element));
 
@@ -65,165 +115,210 @@ const counterObserver = new IntersectionObserver(entries => entries.forEach(entr
   if (!entry.isIntersecting) return;
   const element = entry.target;
   const target = Number(element.dataset.count);
-  const suffix = target === 100 ? '%' : '';
-  const started = performance.now();
-  const tick = now => {
-    const phase = Math.min((now - started) / 1100, 1);
-    element.textContent = Math.round(target * (1 - Math.pow(1 - phase, 3))) + suffix;
-    if (phase < 1) requestAnimationFrame(tick);
-  };
-  requestAnimationFrame(tick);
+  const suffix = element.dataset.suffix || '';
+  if (reduceMotion()) {
+    element.textContent = target + suffix;
+  } else {
+    const started = performance.now();
+    const draw = now => {
+      const phase = Math.min((now - started) / 1050, 1);
+      element.textContent = Math.round(target * (1 - Math.pow(1 - phase, 3))) + suffix;
+      if (phase < 1) requestAnimationFrame(draw);
+    };
+    requestAnimationFrame(draw);
+  }
   counterObserver.unobserve(element);
-}), { threshold: .7 });
+}), { threshold: .65 });
 
 $$('[data-count]').forEach(element => counterObserver.observe(element));
 
-// Hero story carousel with click-clack title transition.
+// Motion preference switch.
+const motionToggle = $('#motionToggle');
+let effectsOff = false;
+try { effectsOff = localStorage.getItem('rodina-effects') === 'off'; } catch {}
+
+const applyMotionPreference = () => {
+  document.body.classList.toggle('motion-off', effectsOff);
+  motionToggle.setAttribute('aria-pressed', String(!effectsOff));
+  motionToggle.title = effectsOff ? 'Включить анимации' : 'Отключить анимации';
+  syncHeroTimer();
+};
+
+motionToggle.addEventListener('click', () => {
+  effectsOff = !effectsOff;
+  try { localStorage.setItem('rodina-effects', effectsOff ? 'off' : 'on'); } catch {}
+  applyMotionPreference();
+});
+
+// Hero story carousel.
 const heroStories = [
   {
     image: 'assets/hero.png',
-    lineOne: 'Твоя история.',
-    lineTwo: 'Твоя Родина.',
-    description: 'Серьёзный ролевой проект, где у каждого решения есть последствия, а у каждого игрока — собственный путь.'
+    title: 'Твоя история.',
+    accent: 'Твоя Родина.',
+    lead: 'Серьёзный ролевой проект, где решения создают последствия, а игроки — историю целого города.'
   },
   {
     image: 'assets/gallery/skyline.jpg',
-    lineOne: 'Знакомый город.',
-    lineTwo: 'Новые правила.',
-    description: 'Авторская Москва объединяет узнаваемые улицы, живые организации и ситуации, которые создают сами игроки.'
+    title: 'Знакомый город.',
+    accent: 'Новые правила.',
+    lead: 'Авторская Москва объединяет узнаваемые улицы, живые организации и ситуации, которые создают сами игроки.'
   },
   {
     image: 'assets/gallery/patrol.jpg',
-    lineOne: 'Сделай выбор.',
-    lineTwo: 'Оставь след.',
-    description: 'Поступай на службу, развивай своё дело или выбирай независимый путь — город запомнит каждое действие.'
+    title: 'Сделай выбор.',
+    accent: 'Оставь след.',
+    lead: 'Поступай на службу, развивай своё дело или выбирай независимый путь — город запомнит каждое действие.'
   }
 ];
 
 const hero = $('.hero');
-const heroArt = $('#heroArt');
-const heroLineOne = $('#heroLineOne');
-const heroLineTwo = $('#heroLineTwo');
-const heroDescription = $('#heroDescription');
-const heroPageButtons = $$('.hero-pages button');
+const heroMedia = $('#heroMedia');
+const heroTitleMain = $('#heroTitleMain');
+const heroTitleAccent = $('#heroTitleAccent');
+const heroLead = $('#heroLead');
+const heroTabs = $$('.hero-dots button');
+const heroPause = $('#heroPause');
 let heroIndex = 0;
 let heroLocked = false;
-let heroTimer;
+let heroPaused = false;
+let heroTimer = 0;
 
-const restartHeroTimer = () => {
+function syncHeroTimer() {
   clearInterval(heroTimer);
-  heroTimer = setInterval(() => changeHero(heroIndex + 1), 8500);
-};
+  heroTimer = 0;
+  if (!heroPaused && !effectsOff && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    heroTimer = setInterval(() => showHero(heroIndex + 1), 8500);
+  }
+}
 
-const changeHero = nextIndex => {
-  if (heroLocked) return;
+const showHero = nextIndex => {
   const normalized = (nextIndex + heroStories.length) % heroStories.length;
-  if (normalized === heroIndex) return;
+  if (normalized === heroIndex || heroLocked) return;
   heroLocked = true;
   hero.classList.add('switching');
   const story = heroStories[normalized];
   const preloader = new Image();
   preloader.src = story.image;
+
   setTimeout(() => {
-    heroArt.style.backgroundImage = `url('${story.image}')`;
-    heroLineOne.textContent = story.lineOne;
-    heroLineTwo.textContent = story.lineTwo;
-    heroDescription.textContent = story.description;
+    heroMedia.style.backgroundImage = `url('${story.image}')`;
+    heroTitleMain.textContent = story.title;
+    heroTitleAccent.textContent = story.accent;
+    heroLead.textContent = story.lead;
     heroIndex = normalized;
-    heroPageButtons.forEach((button, index) => {
+    heroTabs.forEach((tab, index) => {
       const active = index === heroIndex;
-      button.classList.toggle('active', active);
-      button.setAttribute('aria-selected', String(active));
+      tab.classList.toggle('active', active);
+      tab.setAttribute('aria-selected', String(active));
     });
     requestAnimationFrame(() => requestAnimationFrame(() => {
       hero.classList.remove('switching');
-      setTimeout(() => { heroLocked = false; }, 330);
+      setTimeout(() => { heroLocked = false; }, reduceMotion() ? 0 : 330);
     }));
-  }, 260);
-  restartHeroTimer();
+  }, reduceMotion() ? 0 : 250);
+  syncHeroTimer();
 };
 
-$('#heroPrev').addEventListener('click', () => changeHero(heroIndex - 1));
-$('#heroNext').addEventListener('click', () => changeHero(heroIndex + 1));
-heroPageButtons.forEach(button => button.addEventListener('click', () => changeHero(Number(button.dataset.hero))));
+$('#heroPrev').addEventListener('click', () => showHero(heroIndex - 1));
+$('#heroNext').addEventListener('click', () => showHero(heroIndex + 1));
+heroTabs.forEach(tab => tab.addEventListener('click', () => showHero(Number(tab.dataset.hero))));
+heroPause.addEventListener('click', () => {
+  heroPaused = !heroPaused;
+  heroPause.setAttribute('aria-pressed', String(heroPaused));
+  $('span', heroPause).textContent = heroPaused ? 'Продолжить' : 'Пауза';
+  $('b', heroPause).textContent = heroPaused ? '▶' : 'Ⅱ';
+  syncHeroTimer();
+});
 hero.addEventListener('mouseenter', () => clearInterval(heroTimer));
-hero.addEventListener('mouseleave', restartHeroTimer);
-restartHeroTimer();
+hero.addEventListener('mouseleave', syncHeroTimer);
 
-// Faction switcher.
-const factions = {
+// Role switcher.
+const roles = {
   mvd: {
     image: 'assets/gallery/patrol.jpg',
+    alt: 'Патруль МВД',
     tag: 'ГОСУДАРСТВЕННАЯ СЛУЖБА',
     title: 'Защищай город,<br>который стал домом.',
     text: 'Патрулируй улицы, реагируй на вызовы и поддерживай порядок там, где каждое решение видно всему городу.'
   },
   fsb: {
     image: 'assets/gallery/security.jpg',
+    alt: 'Сотрудники ФСБ',
     tag: 'БЕЗОПАСНОСТЬ И ПОРЯДОК',
     title: 'Работай там,<br>где ошибкам нет места.',
     text: 'Сложные операции, защита государственных интересов и командная работа для тех, кто умеет действовать точно.'
   },
   civil: {
     image: 'assets/gallery/cafe.jpg',
+    alt: 'Повседневная жизнь горожан',
     tag: 'СВОБОДНАЯ ИСТОРИЯ',
     title: 'Построй жизнь<br>по собственным правилам.',
     text: 'Найди работу, развивай связи, создавай бизнес и преврати обычный день в историю, которую запомнит весь город.'
   }
 };
 
-const factionVisual = $('.faction-visual');
-const factionImage = $('#factionImage');
+const roleStage = $('#roleStage');
+const roleImage = $('#roleImage');
+let roleLocked = false;
 
-$$('.faction-tab').forEach(tab => tab.addEventListener('click', () => {
-  const data = factions[tab.dataset.faction];
-  $$('.faction-tab').forEach(item => {
+$$('.role-tabs button').forEach(tab => tab.addEventListener('click', () => {
+  if (tab.classList.contains('active') || roleLocked) return;
+  roleLocked = true;
+  const data = roles[tab.dataset.role];
+  $$('.role-tabs button').forEach(item => {
     const active = item === tab;
     item.classList.toggle('active', active);
     item.setAttribute('aria-selected', String(active));
   });
-  factionVisual.classList.add('loading');
+  roleStage.classList.add('loading');
   const preloader = new Image();
-  preloader.onload = () => {
-    factionImage.src = data.image;
-    $('#factionTag').textContent = data.tag;
-    $('#factionTitle').innerHTML = data.title;
-    $('#factionText').textContent = data.text;
-    requestAnimationFrame(() => factionVisual.classList.remove('loading'));
+  preloader.onload = preloader.onerror = () => {
+    roleImage.src = data.image;
+    roleImage.alt = data.alt;
+    $('#roleTag').textContent = data.tag;
+    $('#roleTitle').innerHTML = data.title;
+    $('#roleText').textContent = data.text;
+    requestAnimationFrame(() => {
+      roleStage.classList.remove('loading');
+      setTimeout(() => { roleLocked = false; }, reduceMotion() ? 0 : 260);
+    });
   };
   preloader.src = data.image;
 }));
 
-// City gallery carousel: arrows, thumbnails, keyboard and swipe.
+// Gallery, thumbnails, swipe and full-screen viewer.
 const galleryItems = [
-  ['assets/gallery/skyline.jpg', 'ГОРОД', 'Панорама центра'],
-  ['assets/gallery/security.jpg', 'СЛУЖБА', 'Силовые структуры'],
-  ['assets/gallery/cafe.jpg', 'ЖИЗНЬ', 'Повседневная жизнь'],
-  ['assets/gallery/city.jpg', 'ГОРОД', 'Деловой квартал'],
-  ['assets/gallery/office.jpg', 'ИНТЕРЬЕР', 'Рабочие пространства'],
-  ['assets/gallery/district.jpg', 'АРХИТЕКТУРА', 'Новые районы'],
-  ['assets/gallery/patrol.jpg', 'СЛУЖБА', 'Городской патруль'],
-  ['assets/gallery/map.jpg', 'КАРТА', 'Мир в разработке']
-].map(([image, category, title]) => ({ image, category, title }));
+  { image: 'assets/gallery/skyline.jpg', category: 'ГОРОД', title: 'Панорама центра', alt: 'Панорама центра игровой Москвы' },
+  { image: 'assets/gallery/security.jpg', category: 'СЛУЖБА', title: 'Силовые структуры', alt: 'Сотрудники силовых структур' },
+  { image: 'assets/gallery/cafe.jpg', category: 'ЖИЗНЬ', title: 'Повседневная жизнь', alt: 'Городское кафе' },
+  { image: 'assets/gallery/city.jpg', category: 'ГОРОД', title: 'Деловой квартал', alt: 'Деловой квартал Москвы' },
+  { image: 'assets/gallery/office.jpg', category: 'ИНТЕРЬЕР', title: 'Рабочие пространства', alt: 'Городской офис' },
+  { image: 'assets/gallery/district.jpg', category: 'АРХИТЕКТУРА', title: 'Новые районы', alt: 'Современный городской район' },
+  { image: 'assets/gallery/patrol.jpg', category: 'СЛУЖБА', title: 'Городской патруль', alt: 'Автомобили городского патруля' },
+  { image: 'assets/gallery/map.jpg', category: 'КАРТА', title: 'Мир в разработке', alt: 'Черновая карта проекта' }
+];
 
-const gallerySlides = $('#gallerySlides');
+const galleryTrack = $('#galleryTrack');
 const galleryThumbs = $('#galleryThumbs');
 let galleryIndex = 0;
 let galleryPrevious = 0;
-let galleryTouchX = 0;
+let galleryTouchStart = 0;
 
 galleryItems.forEach((item, index) => {
   const slide = document.createElement('button');
+  slide.type = 'button';
   slide.className = `gallery-slide${index === 0 ? ' active' : ''}`;
-  slide.setAttribute('aria-label', `Открыть: ${item.title}`);
-  slide.innerHTML = `<img src="${item.image}" alt="${item.title}">`;
-  slide.addEventListener('click', () => openLightbox(item));
-  gallerySlides.append(slide);
+  slide.setAttribute('aria-label', `Открыть изображение: ${item.title}`);
+  slide.innerHTML = `<img src="${item.image}" alt="${item.alt}" width="1600" height="900" ${index ? 'loading="lazy"' : ''}>`;
+  slide.addEventListener('click', () => openLightbox(index));
+  galleryTrack.append(slide);
 
   const thumb = document.createElement('button');
+  thumb.type = 'button';
   thumb.className = `gallery-thumb${index === 0 ? ' active' : ''}`;
   thumb.setAttribute('aria-label', `Показать кадр ${index + 1}: ${item.title}`);
-  thumb.innerHTML = `<img src="${item.image}" alt="">`;
+  thumb.innerHTML = `<img src="${item.image}" alt="" width="160" height="90" loading="lazy">`;
   thumb.addEventListener('click', () => showGallery(index));
   galleryThumbs.append(thumb);
 });
@@ -237,198 +332,227 @@ const showGallery = nextIndex => {
     slide.classList.toggle('previous', index === galleryPrevious);
     slide.classList.toggle('active', index === galleryIndex);
   });
-  $$('.gallery-thumb').forEach((thumb, index) => thumb.classList.toggle('active', index === galleryIndex));
+  $$('.gallery-thumb').forEach((thumb, index) => {
+    const active = index === galleryIndex;
+    thumb.classList.toggle('active', active);
+    thumb.setAttribute('aria-current', active ? 'true' : 'false');
+  });
   const item = galleryItems[galleryIndex];
-  $('#galleryNumber').textContent = `${pad(galleryIndex + 1)} / ${pad(galleryItems.length)}`;
+  $('#galleryIndex').textContent = `${pad(galleryIndex + 1)} / ${pad(galleryItems.length)}`;
   $('#galleryCurrent').textContent = pad(galleryIndex + 1);
   $('#galleryCategory').textContent = item.category;
   $('#galleryTitle').textContent = item.title;
-  $('#galleryProgress').style.width = `${(galleryIndex + 1) / galleryItems.length * 100}%`;
-  $$('.gallery-thumb')[galleryIndex].scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+  $('#galleryLine').style.width = `${(galleryIndex + 1) / galleryItems.length * 100}%`;
+  const currentThumb = $$('.gallery-thumb')[galleryIndex];
+  currentThumb.scrollIntoView({ behavior: reduceMotion() ? 'auto' : 'smooth', block: 'nearest', inline: 'center' });
 };
 
 $('#galleryPrev').addEventListener('click', () => showGallery(galleryIndex - 1));
 $('#galleryNext').addEventListener('click', () => showGallery(galleryIndex + 1));
-$('#galleryExpand').addEventListener('click', () => openLightbox(galleryItems[galleryIndex]));
-$('.gallery-viewport').addEventListener('touchstart', event => { galleryTouchX = event.changedTouches[0].clientX; }, { passive: true });
-$('.gallery-viewport').addEventListener('touchend', event => {
-  const distance = event.changedTouches[0].clientX - galleryTouchX;
+$('#galleryOpen').addEventListener('click', () => openLightbox(galleryIndex));
+$('#galleryView').addEventListener('touchstart', event => { galleryTouchStart = event.changedTouches[0].clientX; }, { passive: true });
+$('#galleryView').addEventListener('touchend', event => {
+  const distance = event.changedTouches[0].clientX - galleryTouchStart;
   if (Math.abs(distance) > 45) showGallery(galleryIndex + (distance < 0 ? 1 : -1));
 }, { passive: true });
 
-// Dev log pagination.
+const lightbox = $('#lightbox');
+const renderLightbox = () => {
+  const item = galleryItems[galleryIndex];
+  $('#lightboxImage').src = item.image;
+  $('#lightboxImage').alt = item.alt;
+  $('#lightboxNumber').textContent = `${pad(galleryIndex + 1)} / ${pad(galleryItems.length)}`;
+  $('#lightboxTitle').textContent = item.title;
+};
+
+function openLightbox(index) {
+  if (index !== galleryIndex) showGallery(index);
+  renderLightbox();
+  lightbox.showModal();
+  document.body.classList.add('modal-open');
+}
+
+const closeLightbox = () => {
+  if (lightbox.open) lightbox.close();
+  document.body.classList.remove('modal-open');
+};
+
+$('#lightboxClose').addEventListener('click', closeLightbox);
+$('#lightboxPrev').addEventListener('click', () => { showGallery(galleryIndex - 1); renderLightbox(); });
+$('#lightboxNext').addEventListener('click', () => { showGallery(galleryIndex + 1); renderLightbox(); });
+lightbox.addEventListener('cancel', event => { event.preventDefault(); closeLightbox(); });
+lightbox.addEventListener('click', event => { if (event.target === lightbox) closeLightbox(); });
+
+// Development timeline.
 const devEntries = [
-  { image: 'assets/gallery/map.jpg', badge: 'WORK IN PROGRESS', date: '24 ИЮЛЯ 2026', number: '001', title: 'Первый взгляд<br>на карту', text: 'Чистый лист без обозначений — основа будущего города. К открытию здесь появятся дополнительные локации и связные игровые маршруты.' },
-  { image: 'assets/gallery/security.jpg', badge: 'ФРАКЦИИ', date: '25 ИЮЛЯ 2026', number: '002', title: 'Структура<br>ФСБ', text: 'Элитная государственная служба, отвечающая за безопасность, порядок и сложные операции внутри игрового мира.' },
-  { image: 'assets/gallery/patrol.jpg', badge: 'ФРАКЦИИ', date: '27 ИЮЛЯ 2026', number: '003', title: 'Первые кадры<br>МВД', text: 'Патрульная служба, транспорт и инфраструктура для ежедневной работы сотрудников на городских улицах.' },
-  { image: 'assets/gallery/office.jpg', badge: 'СООБЩЕСТВО', date: '27 ИЮЛЯ 2026', number: '004', title: 'Кодекс<br>сообщества', text: 'Опубликованы основные принципы честной игры, уважительного общения и поддержания сильной ролевой атмосферы.' }
+  { image: 'assets/gallery/map.jpg', alt: 'Черновая карта проекта', badge: 'WORK IN PROGRESS', date: '24 ИЮЛЯ 2026', number: '001', category: 'КАРТА', title: 'Первый взгляд<br>на карту', text: 'Чистый лист без обозначений — основа будущего города. К открытию здесь появятся дополнительные локации и связные игровые маршруты.' },
+  { image: 'assets/gallery/security.jpg', alt: 'Сотрудники ФСБ', badge: 'ФРАКЦИИ', date: '25 ИЮЛЯ 2026', number: '002', category: 'ФСБ', title: 'Структура<br>ФСБ', text: 'Элитная государственная служба, отвечающая за безопасность, порядок и сложные операции внутри игрового мира.' },
+  { image: 'assets/gallery/patrol.jpg', alt: 'Патруль МВД', badge: 'ФРАКЦИИ', date: '27 ИЮЛЯ 2026', number: '003', category: 'МВД', title: 'Первые кадры<br>МВД', text: 'Патрульная служба, транспорт и инфраструктура для ежедневной работы сотрудников на городских улицах.' },
+  { image: 'assets/gallery/office.jpg', alt: 'Рабочее пространство', badge: 'СООБЩЕСТВО', date: '27 ИЮЛЯ 2026', number: '004', category: 'КОДЕКС', title: 'Кодекс<br>сообщества', text: 'Основные принципы честной игры, уважительного общения и поддержания сильной ролевой атмосферы.' }
 ];
 
-const featuredLog = $('.featured-log');
+const devFeature = $('#devFeature');
 let devIndex = 0;
 let devLocked = false;
 
 const showDev = nextIndex => {
-  if (devLocked) return;
   const normalized = (nextIndex + devEntries.length) % devEntries.length;
-  if (normalized === devIndex) return;
+  if (normalized === devIndex || devLocked) return;
   devLocked = true;
-  featuredLog.classList.add('switching');
+  devFeature.classList.add('switching');
   const entry = devEntries[normalized];
   const preloader = new Image();
   preloader.src = entry.image;
   setTimeout(() => {
     $('#devImage').src = entry.image;
+    $('#devImage').alt = entry.alt;
     $('#devBadge').textContent = entry.badge;
     $('#devDate').textContent = entry.date;
     $('#devNumber').textContent = entry.number;
+    $('#devCategory').textContent = entry.category;
     $('#devTitle').innerHTML = entry.title;
     $('#devText').textContent = entry.text;
-    $('#devCurrent').textContent = pad(normalized + 1);
     devIndex = normalized;
-    $$('.log-row').forEach(row => row.classList.toggle('active', Number(row.dataset.dev) === devIndex));
-    requestAnimationFrame(() => {
-      featuredLog.classList.remove('switching');
-      setTimeout(() => { devLocked = false; }, 280);
+    $$('.dev-timeline button').forEach((tab, index) => {
+      const active = index === devIndex;
+      tab.classList.toggle('active', active);
+      tab.setAttribute('aria-selected', String(active));
     });
-  }, 230);
+    requestAnimationFrame(() => {
+      devFeature.classList.remove('switching');
+      setTimeout(() => { devLocked = false; }, reduceMotion() ? 0 : 260);
+    });
+  }, reduceMotion() ? 0 : 220);
 };
 
-$('#devPrev').addEventListener('click', () => showDev(devIndex - 1));
-$('#devNext').addEventListener('click', () => showDev(devIndex + 1));
-$$('.log-row').forEach(row => row.addEventListener('click', () => showDev(Number(row.dataset.dev))));
+$$('.dev-timeline button').forEach(tab => tab.addEventListener('click', () => showDev(Number(tab.dataset.dev))));
 
-// Lightbox shared by gallery controls.
-const lightbox = $('.lightbox');
-const lightboxImage = $('img', lightbox);
-const lightboxCaption = $('p', lightbox);
+// One open community principle at a time.
+$$('.accordions details').forEach(details => details.addEventListener('toggle', () => {
+  if (!details.open) return;
+  $$('.accordions details').forEach(other => { if (other !== details) other.open = false; });
+}));
 
-function openLightbox(item) {
-  lightboxImage.src = item.image;
-  lightboxImage.alt = item.title;
-  lightboxCaption.textContent = `${item.category} · ${item.title}`;
-  lightbox.showModal();
-  document.body.classList.add('locked');
-}
-
-const closeLightbox = () => {
-  lightbox.close();
-  document.body.classList.remove('locked');
+// Clipboard action and visible confirmation.
+const toast = $('#toast');
+let toastTimer = 0;
+const showToast = text => {
+  toast.textContent = text;
+  toast.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toast.classList.remove('show'), 2400);
 };
 
-$('button', lightbox).addEventListener('click', closeLightbox);
-lightbox.addEventListener('click', event => { if (event.target === lightbox) closeLightbox(); });
+const copyText = async text => {
+  try {
+    await navigator.clipboard.writeText(text);
+  } catch {
+    const helper = document.createElement('textarea');
+    helper.value = text;
+    helper.setAttribute('readonly', '');
+    helper.style.position = 'fixed';
+    helper.style.opacity = '0';
+    document.body.append(helper);
+    helper.select();
+    document.execCommand('copy');
+    helper.remove();
+  }
+};
 
+$('#copyServer').addEventListener('click', async event => {
+  await copyText(event.currentTarget.dataset.copy);
+  showToast('ID сервера скопирован');
+});
+
+// Keyboard behavior stays scoped to the visible component.
 addEventListener('keydown', event => {
-  if (event.key === 'Escape' && lightbox.open) closeLightbox();
-  const galleryVisible = $('#gallery').getBoundingClientRect();
-  if (!lightbox.open && galleryVisible.top < innerHeight * .8 && galleryVisible.bottom > innerHeight * .2) {
+  if (event.key === 'Escape') {
+    closeMenu();
+    if (lightbox.open) closeLightbox();
+  }
+  if (lightbox.open) {
+    if (event.key === 'ArrowLeft') { showGallery(galleryIndex - 1); renderLightbox(); }
+    if (event.key === 'ArrowRight') { showGallery(galleryIndex + 1); renderLightbox(); }
+    return;
+  }
+  const galleryRect = $('#city').getBoundingClientRect();
+  if (galleryRect.top < innerHeight * .75 && galleryRect.bottom > innerHeight * .25) {
     if (event.key === 'ArrowLeft') showGallery(galleryIndex - 1);
     if (event.key === 'ArrowRight') showGallery(galleryIndex + 1);
   }
 });
 
-// Click-clack transitions for internal navigation.
-const jumpFlash = $('.jump-flash');
-const jumpMap = {
-  project: ['01', 'ПРОЕКТ'],
-  factions: ['02', 'ФРАКЦИИ'],
-  gallery: ['03', 'ГОРОД'],
-  devblog: ['04', 'DEV LOG'],
-  rules: ['05', 'КОДЕКС'],
-  top: ['00', 'НАВЕРХ']
-};
-
-$$('a[href^="#"]').forEach(link => link.addEventListener('click', event => {
-  const id = link.hash.slice(1);
-  const target = id ? document.getElementById(id) : null;
-  if (!target) return;
-  event.preventDefault();
-  nav.classList.remove('open');
-  menu.setAttribute('aria-expanded', 'false');
-
-  const [number, label] = jumpMap[id] || ['--', link.dataset.jumpLabel || 'ПЕРЕХОД'];
-  $('span', jumpFlash).textContent = number;
-  $('strong', jumpFlash).textContent = label;
-  jumpFlash.classList.remove('play');
-  void jumpFlash.offsetWidth;
-  jumpFlash.classList.add('play');
-
-  setTimeout(() => {
-    target.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
-    const heading = $('.display, h2', target);
-    if (heading) {
-      heading.classList.remove('clack-hit');
-      requestAnimationFrame(() => heading.classList.add('clack-hit'));
-    }
-    history.pushState(null, '', `#${id}`);
-  }, 90);
-}));
-
-jumpFlash.addEventListener('animationend', () => jumpFlash.classList.remove('play'));
-
-// High-refresh pointer effects: every write is batched into requestAnimationFrame.
+// Pointer effects write at most once per display frame.
 if (matchMedia('(pointer:fine)').matches) {
-  const aura = $('.cursor-aura');
+  const cursorLight = $('#cursorLight');
   let pointerFrame = 0;
-  let pointerX = -300;
-  let pointerY = -300;
+  let pointerX = -400;
+  let pointerY = -400;
 
   addEventListener('pointermove', event => {
     pointerX = event.clientX;
     pointerY = event.clientY;
-    document.body.classList.add('pointer-ready');
-    document.body.classList.toggle('over-hero', Boolean(event.target.closest?.('.hero')));
-    if (pointerFrame) return;
-    pointerFrame = requestAnimationFrame(() => {
-      aura.style.transform = `translate3d(${pointerX}px,${pointerY}px,0)`;
-      pointerFrame = 0;
-    });
+    document.body.classList.add('pointer-active');
+    document.body.classList.toggle('pointer-hero', Boolean(event.target.closest?.('.hero')));
+    if (!pointerFrame) {
+      pointerFrame = requestAnimationFrame(() => {
+        cursorLight.style.transform = `translate3d(${pointerX}px,${pointerY}px,0)`;
+        pointerFrame = 0;
+      });
+    }
   }, { passive: true });
 
-  addEventListener('blur', () => document.body.classList.remove('pointer-ready'));
+  addEventListener('blur', () => document.body.classList.remove('pointer-active'));
 
-  $$('.tilt').forEach(card => {
-    let cardFrame = 0;
-    let tiltX = 0;
-    let tiltY = 0;
+  $$('.tilt-card').forEach(card => {
+    let frame = 0;
+    let x = 0;
+    let y = 0;
     card.addEventListener('pointermove', event => {
       const rect = card.getBoundingClientRect();
-      tiltX = (event.clientX - rect.left) / rect.width - .5;
-      tiltY = (event.clientY - rect.top) / rect.height - .5;
-      if (cardFrame) return;
-      cardFrame = requestAnimationFrame(() => {
-        card.style.transform = `perspective(900px) rotateY(${tiltX * 3}deg) rotateX(${-tiltY * 3}deg)`;
-        cardFrame = 0;
-      });
+      x = (event.clientX - rect.left) / rect.width - .5;
+      y = (event.clientY - rect.top) / rect.height - .5;
+      if (!frame) {
+        frame = requestAnimationFrame(() => {
+          card.style.transform = `perspective(1000px) rotateY(${x * 2.8}deg) rotateX(${-y * 2.8}deg)`;
+          frame = 0;
+        });
+      }
     }, { passive: true });
     card.addEventListener('pointerleave', () => {
-      if (cardFrame) cancelAnimationFrame(cardFrame);
-      cardFrame = 0;
+      if (frame) cancelAnimationFrame(frame);
+      frame = 0;
       card.style.transform = '';
     });
   });
 
   $$('.magnetic').forEach(button => {
-    let buttonFrame = 0;
-    let moveX = 0;
-    let moveY = 0;
+    let frame = 0;
+    let x = 0;
+    let y = 0;
     button.addEventListener('pointermove', event => {
       const rect = button.getBoundingClientRect();
-      moveX = (event.clientX - rect.left - rect.width / 2) * .08;
-      moveY = (event.clientY - rect.top - rect.height / 2) * .12;
-      if (buttonFrame) return;
-      buttonFrame = requestAnimationFrame(() => {
-        button.style.transform = `translate3d(${moveX}px,${moveY}px,0)`;
-        buttonFrame = 0;
-      });
+      x = (event.clientX - rect.left - rect.width / 2) * .07;
+      y = (event.clientY - rect.top - rect.height / 2) * .1;
+      if (!frame) {
+        frame = requestAnimationFrame(() => {
+          button.style.transform = `translate3d(${x}px,${y}px,0)`;
+          frame = 0;
+        });
+      }
     }, { passive: true });
     button.addEventListener('pointerleave', () => {
-      if (buttonFrame) cancelAnimationFrame(buttonFrame);
-      buttonFrame = 0;
+      if (frame) cancelAnimationFrame(frame);
+      frame = 0;
       button.style.transform = '';
     });
   });
 }
 
-if (location.hash) setTimeout(() => $(location.hash)?.scrollIntoView(), 900);
+applyMotionPreference();
+syncHeroTimer();
+
+if (location.hash) {
+  const target = document.getElementById(location.hash.slice(1));
+  if (target) setTimeout(() => target.scrollIntoView({ block: 'start' }), 650);
+}
